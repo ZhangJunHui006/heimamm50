@@ -11,7 +11,7 @@ Vue.use(VueTouter)
 let router = new VueTouter({
     routes: [
         { path: '*', redirect: '/' },
-        { path: '/', component: layout },
+        { path: '/', component: login },
         { path: '/layout', component: layout },
         { path: '/login', component: login }
     ]
