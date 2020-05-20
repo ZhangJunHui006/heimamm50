@@ -137,6 +137,14 @@ export default {
             this.$router.push({
               path: "/layout"
             });
+
+            this.$message({
+              message: "登录成功",
+              type: "success"
+            });
+          } else {
+            this.$message.error(res.data.message);
+            this.getCodeUrl();
           }
         });
       });
