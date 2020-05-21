@@ -10,12 +10,12 @@
         <div class="right">
           <img :src="avatar" alt />
           <span class="name">{{ username }} 欢迎您</span>
-          <el-button type="primary" @click="out">退出</el-button>
+          <el-button type="primary" @click="open">退出</el-button>
         </div>
       </el-header>
       <el-container>
         <el-aside width="auto">
-          <el-menu router default-active="3" class="el-menu-vertical-demo" :collapse="isCollapse">
+          <el-menu router :default-active="defaultActive" class="el-menu-vertical-demo" :collapse="isCollapse">
             <el-menu-item index="/layout/chart">
               <i class="el-icon-pie-chart"></i>
               <span slot="title">数据预览</span>
@@ -53,19 +53,17 @@ export default {
     return {
       username: "",
       avatar: "",
-      isCollapse: false
+      isCollapse: false,
+      defaultActive:''
     };
   },
   created() {
+    // console.log('1',this.$route.fullPath);
+    this.defaultActive = this.$route.fullPath
     this.getData();
   },
   methods: {
-    //退出登录
-    out() {
-      removeToken();
 
-      this.$router.push("/login");
-    },
     //登录获取信息
     async getData() {
       const res = await this.$axios({
@@ -77,6 +75,30 @@ export default {
         this.username = res.data.data.username;
         this.avatar = process.env.VUE_APP_BASEURL + "/" + res.data.data.avatar;
       }
+    },
+    //退出登录
+    open() {
+      this.$confirm("是否退出?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.$message({
+            type: "success",
+            message: "退出成功!"
+          });
+          //删除token
+          removeToken();
+          //跳转页面
+          this.$router.push("/login");
+        })
+        // .catch(() => {
+        //   this.$message({
+        //     type: "info"
+        //     // message: "已取消删除"
+        //   });
+        // });
     }
   }
 };
