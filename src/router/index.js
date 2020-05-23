@@ -12,6 +12,8 @@ import subject from '../views/layout/subject'
 //全局注册
 Vue.use(VueTouter)
 
+
+import parent from '../demo/parent.vue'
 //配置项
 let router = new VueTouter({
     routes: [
@@ -26,7 +28,8 @@ let router = new VueTouter({
                 { path: 'subject', component: subject }
             ]
         },
-        { path: '/login', component: login }
+        { path: '/login', component: login },
+        { path: '/parent', component: parent },
     ]
 })
 

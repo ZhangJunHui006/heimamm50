@@ -15,7 +15,12 @@
       </el-header>
       <el-container>
         <el-aside width="auto">
-          <el-menu router :default-active="defaultActive" class="el-menu-vertical-demo" :collapse="isCollapse">
+          <el-menu
+            router
+            :default-active="defaultActive"
+            class="el-menu-vertical-demo"
+            :collapse="isCollapse"
+          >
             <el-menu-item index="/layout/chart">
               <i class="el-icon-pie-chart"></i>
               <span slot="title">数据预览</span>
@@ -54,16 +59,21 @@ export default {
       username: "",
       avatar: "",
       isCollapse: false,
-      defaultActive:''
+      defaultActive: ""
     };
   },
   created() {
     // console.log('1',this.$route.fullPath);
-    this.defaultActive = this.$route.fullPath
+    // this.defaultActive = this.$route.fullPath;
     this.getData();
+    if (this.$route.fullPath == "/layout") {
+      this.defaultActive = "/layout/user";
+      this.$router.push("/layout/user");
+    }else {
+      this.defaultActive = this.$route.fullPath;
+    }
   },
   methods: {
-
     //登录获取信息
     async getData() {
       const res = await this.$axios({
@@ -82,23 +92,22 @@ export default {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      })
-        .then(() => {
-          this.$message({
-            type: "success",
-            message: "退出成功!"
-          });
-          //删除token
-          removeToken();
-          //跳转页面
-          this.$router.push("/login");
-        })
-        // .catch(() => {
-        //   this.$message({
-        //     type: "info"
-        //     // message: "已取消删除"
-        //   });
-        // });
+      }).then(() => {
+        this.$message({
+          type: "success",
+          message: "退出成功!"
+        });
+        //删除token
+        removeToken();
+        //跳转页面
+        this.$router.push("/login");
+      });
+      // .catch(() => {
+      //   this.$message({
+      //     type: "info"
+      //     // message: "已取消删除"
+      //   });
+      // });
     }
   }
 };

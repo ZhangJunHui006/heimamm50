@@ -11,7 +11,7 @@
         </el-form-item>
         <el-form-item label="角色" prop="role_id">
           <el-select v-model="ruleForm.role_id" placeholder="请选择">
-            <el-option label="超级管理员" value="1"></el-option>
+            <el-option label="超级管理员" :value="1"></el-option>
             <el-option label="管理员" value="2"></el-option>
             <el-option label="老师" value="3"></el-option>
             <el-option label="学生" value="4"></el-option>
@@ -41,7 +41,7 @@
         </el-table-column>
         <el-table-column label="操作" width="280">
           <template slot-scope="scope">
-            <el-button type="primary">编辑</el-button>
+            <el-button type="primary" @click="editUser(scope.row)">编辑</el-button>
             <el-button
               @click="changeStatus(scope.row.id)"
               :type="scope.row.status === 0 ? 'success' : 'info'"
@@ -66,7 +66,7 @@
         ></el-pagination>
       </div>
     </el-card>
-    <UserEdit ref="userEditRef"></UserEdit>
+    <UserEdit ref="userEditRef"  :mode="mode"></UserEdit>
   </div>
 </template>
 
@@ -87,7 +87,8 @@ export default {
       page: 1,
       limit: 2,
       userList: [],
-      total: 0 // 总条数，分页时候用得着
+      total: 0, // 总条数，分页时候用得着
+      mode: "add"
     };
   },
   created() {
@@ -102,7 +103,7 @@ export default {
           limit: this.limit
         }
       });
-      console.log(res);
+      // console.log(res);
       if (res.data.code === 200) {
         this.userList = res.data.data.items;
         this.total = res.data.data.pagination.total;
@@ -163,8 +164,35 @@ export default {
     },
     add() {
       // 让新增用户的对话框显示出来
+      // 让新增用户的对话框显示出来
+      this.$refs.userEditRef.userForm = {
+        username: "", // 用户名
+        email: "", // 邮箱
+        phone: "", // 手机号
+        role_id: "", // 角色 1：超级管理员 2：管理员 3：老师 4：学生
+        status: "", // 状态 1：启用 0：禁用
+        remark: "" // 备注
+      };
+
+      this.mode = "add";
       this.$refs.userEditRef.dialogVisible = true;
-      this.$refs.userEditRef.mode = "add";
+      this.$nextTick(() => {
+        this.$refs.userEditRef.$refs.userEditFormRef.clearValidate();
+      });
+    },
+    //编辑
+    editUser(row) {
+      this.mode = "edit";
+      console.log(this.mode);
+
+      // 深拷贝数据
+      this.$refs.userEditRef.userForm = JSON.parse(JSON.stringify(row));
+      console.log(row);
+
+      this.$refs.userEditRef.dialogVisible = true;
+      this.$nextTick(() => {
+        this.$refs.userEditRef.$refs.userEditFormRef.clearValidate();
+      });
     }
   }
 };
