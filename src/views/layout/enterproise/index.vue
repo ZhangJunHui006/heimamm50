@@ -21,7 +21,7 @@
         <el-form-item>
           <el-button type="primary" @click="search">搜素</el-button>
           <el-button @click="clear">清除</el-button>
-          <el-button type="primary">+新增企业</el-button>
+          <el-button type="primary" @click="add">+新增企业</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -42,9 +42,12 @@
         </el-table-column>
         <el-table-column label="操作" width="280">
           <template slot-scope="scope">
-            <el-button>编辑</el-button>
-            <el-button :type="scope.row.status === 0 ? 'success' : 'info'">禁用</el-button>
-            <el-button>删除</el-button>
+            <el-button @click="edit(scope.row)">编辑</el-button>
+            <el-button
+              @click="changeStatus(scope.row.id)"
+              :type="scope.row.status === 0 ? 'success' : 'info'"
+            >禁用</el-button>
+            <el-button @click="del(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -53,7 +56,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="page"
-          :page-sizes="[1, 3, 10, 20]"
+          :page-sizes="[2, 3, 10, 20]"
           :page-size="limit"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
@@ -61,11 +64,16 @@
         ></el-pagination>
       </div>
     </el-card>
+    <enterproise ref="enterproiseRef"></enterproise>
   </div>
 </template>
 
 <script>
+import enterproise from "./enterproise-add-or-update";
 export default {
+  components: {
+    enterproise
+  },
   data() {
     return {
       searchForm: {
@@ -76,7 +84,7 @@ export default {
       },
       tableData: [],
       page: 1, //页码
-      limit: 1, //页容量
+      limit: 2, //页容量
       total: 0 //总条数
     };
   },
@@ -104,16 +112,85 @@ export default {
       this.page = 1;
       this.getData();
     },
-    clear(){
-      this.$refs.searchFormRef.resetFields()
+    clear() {
+      this.$refs.searchFormRef.resetFields();
+    },
+    async changeStatus(id) {
+      console.log(id);
+      const res = await this.$axios.post("/enterprise/status", { id });
+      if (res.data.code == 200) {
+        this.$message({
+          message: "状态修改成功",
+          type: "success"
+        });
+        this.getData();
+      }
+    },
+    del(id) {
+      this.$confirm("确定删除吗, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          const res = await this.$axios.post("/enterprise/remove", { id });
+          if (res.data.code == 200) {
+            this.$message({
+              type: "success",
+              message: "删除成功!"
+            });
+            this.search();
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
     },
     handleSizeChange(val) {
       console.log(`每页 ${val} 条`);
       this.limit = val;
+      this.search();
     },
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`);
       this.page = val;
+      this.getData();
+    },
+    add() {
+      this.$refs.enterproiseRef.mode = "add";
+      //q清空内容
+      this.$refs.enterproiseRef.enterproiseForm = {
+        eid: "",
+        name: "",
+        short_name: "",
+        intro: "",
+        remark: ""
+      };
+      // this.$nextTick(() => {
+      //   this.$refs.enterproiseRef.$refs.enterproiseFormRef.clearValidate();
+      // });
+      this.$refs.enterproiseRef.dialogVisible = true;
+    },
+    edit(row) {
+      // console.log(id);
+      const { id,eid, name, tag, short_name, intro, remark } = row;
+      this.$refs.enterproiseRef.enterproiseForm = {
+        id,
+        eid,
+        name,
+        tag,
+        short_name,
+        intro,
+        remark
+      };
+      this.$refs.enterproiseRef.mode = "edit";
+      // this.$nextTick(() => {
+      //   this.$refs.enterproiseRef.$refs.enterproiseFormRef.clearValidate();
+      // });
+      this.$refs.enterproiseRef.dialogVisible = true;
     }
   }
 };
