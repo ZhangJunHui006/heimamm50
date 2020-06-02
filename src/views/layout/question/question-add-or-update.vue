@@ -22,7 +22,7 @@
         </el-form-item>
         <el-form-item label="阶段" prop="step">
           <el-select v-model="questionForm.step" placeholder="请选择阶段" class="selectWidth">
-            <el-option v-for="(value,name) in stepObj" :key="name" :label="value" :value="name"></el-option>
+            <el-option v-for="(value,name) in stepObj" :key="name" :label="value" :value="+name"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="企业" prop="enterprise">
@@ -46,24 +46,40 @@
         </el-form-item>
         <el-form-item label="题型" prop="type">
           <el-radio-group v-model="questionForm.type">
-            <el-radio v-for="(value, name) in typeObj" :label="name" :key="name">{{value}}</el-radio>
+            <el-radio v-for="(value, name) in typeObj" :label="+name" :key="name">{{value}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="难度" prop="difficulty">
           <el-radio-group v-model="questionForm.difficulty">
-            <el-radio :label="name" v-for="(value, name) in difficultyObj" :key="name">{{value}}</el-radio>
+            <el-radio :label="+name" v-for="(value, name) in difficultyObj" :key="name">{{value}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <hr class="hrMargin" />
         <el-form-item label="试题标题" class="setMargin" prop="title">
-          <quill-editor :options="{placeholder:'请输入内容...'}" v-model="questionForm.title"></quill-editor>
+          <quill-editor
+            :options="{placeholder:'请输入内容...'}"
+            v-model="questionForm.title"
+            @change="onEditorChange('title')"
+          ></quill-editor>
         </el-form-item>
-        <el-form-item :label="typeObj[questionForm.type]" prop="type">
-          <questionType :questionForm="questionForm"></questionType>
+
+        <!-- 插眼 规则验证 -->
+        <el-form-item
+          :label="typeObj[questionForm.type]"
+          :prop="questionTypeObj[questionForm.type]"
+        >
+          <questionType :questionForm="questionForm" @childchange="Valuechildchange"></questionType>
         </el-form-item>
         <hr class="hrMargin" />
+        <el-form-item label="解析视频">
+          <questionUpload type="video" v-model="questionForm.video"></questionUpload>
+        </el-form-item>
         <el-form-item label="答案解析" class="setMargin" prop="answer_analyze">
-          <quill-editor :options="{placeholder:'请输入答案解析...'}" v-model="questionForm.answer_analyze"></quill-editor>
+          <quill-editor
+            :options="{placeholder:'请输入答案解析...'}"
+            v-model="questionForm.answer_analyze"
+            @change="onEditorChange('answer_analyze')"
+          ></quill-editor>
         </el-form-item>
         <el-form-item label="试题备注" prop="remark">
           <el-input v-model="questionForm.remark"></el-input>
@@ -88,11 +104,13 @@ import * as Quill from "quill"; // 富文本基于quill
 
 //题型组件
 import questionType from "./question-type";
+import questionUpload from "./question-upload";
 export default {
   name: "questions",
   components: {
     quillEditor,
-    questionType
+    questionType,
+    questionUpload
   },
   props: {
     subjectList: Array, //  学科
@@ -106,6 +124,11 @@ export default {
       dialogVisible: false, //控制彈框
       mode: "", //新增还是编辑
       optionCity: regionData, //城市
+      questionTypeObj: {
+        1: "single_select_answer",
+        2: "multiple_select_answer",
+        3: "short_answer"
+      },
       questionForm: {
         subject: "",
         step: "", //阶段
@@ -119,6 +142,7 @@ export default {
         single_select_answer: "", //单选题答案
         multiple_select_answer: [], //多选题答案
         short_answer: "", //简答题答案
+        video: "", //解析视频地址
         select_options: [
           {
             label: "A",
@@ -143,17 +167,17 @@ export default {
         ]
       },
       rules: {
-        subject: [{ required: true, message: "请输入学科", trigger: "change" }],
-        step: [{ required: true, message: "请输入阶段", trigger: "change" }],
+        subject: [{ required: true, message: "请选择学科", trigger: "change" }],
+        step: [{ required: true, message: "请选择阶段", trigger: "change" }],
         enterprise: [
-          { required: true, message: "请输入企业", trigger: "change" }
+          { required: true, message: "请选择企业", trigger: "change" }
         ],
-        city: [{ required: true, message: "请输入城市", trigger: "change" }],
-        type: [{ required: true, message: "请输入题型", trigger: "change" }],
+        city: [{ required: true, message: "请选择城市", trigger: "change" }],
+        type: [{ required: true, message: "请选择题型", trigger: "change" }],
         difficulty: [
-          { required: true, message: "请输入难度", trigger: "change" }
+          { required: true, message: "请选择难度", trigger: "change" }
         ],
-        title: [{ required: true, message: "请输入标题", trigger: "change" }],
+        title: [{ required: true, message: "请输入标题", trigger: "blur" }],
         answer_analyze: [
           { required: true, message: "请输入答案解析", trigger: "change" }
         ],
@@ -172,13 +196,51 @@ export default {
       }
     };
   },
+  watch: {
+    dialogVisible(newValue) {
+      if (!newValue) {
+        this.$refs.questionFormRef.clearValidate();
+      }
+    }
+  },
   methods: {
+    onEditorChange(value) {
+      this.$refs.questionFormRef.validateField(value);
+    },
+    Valuechildchange() {
+      this.$refs.questionFormRef.validateField([
+        "single_select_answer",
+        "multiple_select_answer",
+        "short_answer"
+      ]);
+    },
     submit() {
-      this.$refs.questionFormRef.validate(valid => {
+      this.$refs.questionFormRef.validate(async valid => {
         //规则验证
         if (!valid) return;
 
         //验证成功处理的事情
+        let res;
+        if (this.$parent.mode == "add") {
+          res = await this.$axios.post("/question/add", this.questionForm);
+        } else {
+          this.questionForm.city = this.questionForm.city.join(",");
+          res = await this.$axios.post("/question/edit", this.questionForm);
+        }
+        // console.log(res);
+
+        //成功
+        if (res.data.code == 200) {
+          //1, 提示成功
+          this.$message({
+            message: this.$parent.mode == "add" ? "新增成功" : "编辑成功",
+            type: "success"
+          });
+          //2, 关闭弹框
+          this.dialogVisible = false;
+          //3, 刷新
+          this.$parent.search();
+        }
       });
     }
   }

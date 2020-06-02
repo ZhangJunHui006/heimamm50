@@ -9,6 +9,7 @@ import user from '../views/layout/user'
 import enterproise from '../views/layout/enterproise'
 import question from '../views/layout/question'
 import subject from '../views/layout/subject'
+import personal from '../views/layout/personal'
 //全局注册
 Vue.use(VueTouter)
 
@@ -20,15 +21,65 @@ let router = new VueTouter({
         { path: '*', redirect: '/' },
         { path: '/', component: login },
         {
-            path: '/layout', component: layout, children: [
-                { path: 'chart', component: chart },
-                { path: 'user', component: user },
-                { path: 'enterproise', component: enterproise },
-                { path: 'question', component: question },
-                { path: 'subject', component: subject }
+            path: '/layout', component: layout, meta: { roles: ["超级管理员", "管理员", "老师", "学生"] }, children: [
+                {
+                    path: 'personal', component: personal,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师", "学生"],
+                        icon: "el-icon-date",
+                        fullPath: "/layout/personal",
+                        title: "个人信息",
+                    },
+                },
+                {
+                    path: 'chart', component: chart,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师"],
+                        icon: "el-icon-pie-chart",
+                        fullPath: "/layout/chart",
+                        title: "数据预览",
+                    },
+                },
+                {
+                    path: 'user', component: user,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师"],
+                        icon: "el-icon-user",
+                        fullPath: "/layout/user",
+                        title: "用户列表",
+                    },
+                },
+                {
+                    path: 'enterproise', component: enterproise,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师"],
+                        icon: "el-icon-office-building",
+                        fullPath: "/layout/enterproise",
+                        title: "企业列表",
+                    },
+                },
+                {
+                    path: 'question', component: question,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师", "学生"],
+                        icon: "el-icon-edit-outline",
+                        fullPath: "/layout/question",
+                        title: "题库列表",
+                    },
+                },
+                {
+                    path: 'subject', component: subject,
+                    meta: {
+                        roles: ["超级管理员", "管理员", "老师"],
+                        icon: "el-icon-notebook-2",
+                        fullPath: "/layout/subject",
+                        title: "学科列表",
+                    },
+                },
+
             ]
         },
-        { path: '/login', component: login },
+        { path: '/login', component: login, meta: { title: "登录" } },
         { path: '/parent', component: parent },
     ]
 })
@@ -51,6 +102,12 @@ router.beforeEach((to, from, next) => {
             next('/login')
         }
     }
+})
+
+router.afterEach((to, from) => {
+    console.log(to.meta.title);
+
+    document.title = to.meta.title || '黑马面面'
 })
 
 export default router

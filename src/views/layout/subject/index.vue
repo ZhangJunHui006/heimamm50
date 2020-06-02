@@ -27,12 +27,12 @@
     <el-card style="margin-top:20px">
       <el-table :data="tableData">
         <el-table-column type="index" label="序号"></el-table-column>
-        <el-table-column prop="rid" label="学科编号" width="180"></el-table-column>
+        <el-table-column prop="rid" label="学科编号" width="150"></el-table-column>
         <el-table-column prop="name" label="学科名称" width="180"></el-table-column>
-        <el-table-column prop="short_name" label="简称" width="180"></el-table-column>
-        <el-table-column prop="username" label="创建者" width="180"></el-table-column>
+        <el-table-column prop="short_name" label="简称" width="120"></el-table-column>
+        <el-table-column prop="username" label="创建者" width="150"></el-table-column>
         <el-table-column prop="create_time" label="创建日期" width="180"></el-table-column>
-        <el-table-column label="状态" width="180">
+        <el-table-column label="状态" width="120">
           <template slot-scope="scope">
             <span
               :style="{color :scope.row.status == 0 ? 'red' :'#85ce61' }"

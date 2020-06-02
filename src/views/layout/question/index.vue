@@ -77,7 +77,7 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="标题" prop="title">
-              <el-input style="width:570px" v-model="quertionForm.title"></el-input>
+              <el-input style="width:530px" v-model="quertionForm.title"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -117,7 +117,7 @@
         </el-table-column>
         <el-table-column label="操作" prop>
           <template slot-scope="scope">
-            <el-button type="primary">编辑</el-button>
+            <el-button type="primary" @click="edit(scope.row)">编辑</el-button>
             <el-button
               @click="changeStatus(scope.row.id)"
               :type="scope.row.status === 0 ? 'success' : 'info'"
@@ -126,6 +126,17 @@
           </template>
         </el-table-column>
       </el-table>
+      <div style="text-align:center">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="page"
+          :page-sizes="[2, 5, 10, 20]"
+          :page-size="limit"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+        ></el-pagination>
+      </div>
     </el-card>
     <questionAdd
       ref="questionAddRef"
@@ -178,7 +189,8 @@ export default {
       questionList: [],
       total: 0,
       page: 1,
-      limit: 2
+      limit: 2,
+      mode: ""
     };
   },
   created() {
@@ -255,7 +267,73 @@ export default {
           });
         });
     },
+    handleSizeChange(val) {
+      // console.log(`每页 ${val} 条`);
+      this.limit = val;
+      this.search();
+    },
+    handleCurrentChange(val) {
+      // console.log(`当前页: ${val}`);
+      this.page = val;
+      this.getQuestionList();
+    },
     add() {
+      this.mode = "add";
+      //进入时不显示内容
+      this.$refs.questionAddRef.questionForm = {
+        subject: "",
+        step: "", //阶段
+        enterprise: "", //企业
+        city: [], //城市
+        type: 1, //题型
+        difficulty: 1, //难度
+        title: "", //标题
+        answer_analyze: "", //答案解析
+        remark: "", //试题备注
+        single_select_answer: "", //单选题答案
+        multiple_select_answer: [], //多选题答案
+        short_answer: "", //简答题答案
+        video: "", //解析视频地址
+        select_options: [
+          {
+            label: "A",
+            text: "shift",
+            image: ""
+          },
+          {
+            label: "B",
+            text: "pop",
+            image: ""
+          },
+          {
+            label: "C",
+            text: "splice",
+            image: ""
+          },
+          {
+            label: "D",
+            text: "slice",
+            image: ""
+          }
+        ]
+      };
+      this.$refs.questionAddRef.dialogVisible = true;
+    },
+    edit(row) {
+      console.log(row);
+      this.$refs.questionAddRef.questionForm = JSON.parse(JSON.stringify(row));
+      if (row.city) {
+        this.$refs.questionAddRef.questionForm.city = row.city.split(",");
+      } else {
+        this.$refs.questionAddRef.questionForm.city = [];
+      }
+      if (row.multiple_select_answer) {
+        this.$refs.questionAddRef.questionForm.multiple_select_answer = row.multiple_select_answer.split(
+          ","
+        );
+      } else {
+        this.$refs.questionAddRef.questionForm.multiple_select_answer = [];
+      }
       this.$refs.questionAddRef.dialogVisible = true;
     }
   }

@@ -7,7 +7,11 @@ import router from './router/index'
 import './util/request.js'
 Vue.config.productionTip = false
 
+
+//导入vuex
+import store from './store/index'
 new Vue({
   render: h => h(App),
-  router
+  router,
+  store
 }).$mount('#app')

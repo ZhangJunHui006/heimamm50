@@ -21,6 +21,20 @@
             class="el-menu-vertical-demo"
             :collapse="isCollapse"
           >
+            <el-menu-item
+              v-for="(item,index) in $router.options.routes[2].children"
+              :key="index"
+              :index="item.meta.fullPath"
+              v-show="item.meta.roles.includes($store.getters.getUserInfo.role)"
+            >
+              <i :class="item.meta.icon"></i>
+              <span slot="title">{{item.meta.title}}</span>
+            </el-menu-item>
+            <!--
+            <el-menu-item index="/layout/personal">
+              <i class="el-icon-pie-chart"></i>
+              <span slot="title">个人信息</span>
+            </el-menu-item>
             <el-menu-item index="/layout/chart">
               <i class="el-icon-pie-chart"></i>
               <span slot="title">数据预览</span>
@@ -40,7 +54,7 @@
             <el-menu-item index="/layout/subject">
               <i class="el-icon-notebook-2"></i>
               <span slot="title">学科列表</span>
-            </el-menu-item>
+            </el-menu-item>-->
           </el-menu>
         </el-aside>
         <el-main style="background-color:#e8e9ec">
@@ -69,9 +83,11 @@ export default {
     if (this.$route.fullPath == "/layout") {
       this.defaultActive = "/layout/user";
       this.$router.push("/layout/user");
-    }else {
+    } else {
       this.defaultActive = this.$route.fullPath;
     }
+
+    console.log(this.$router);
   },
   methods: {
     //登录获取信息
@@ -84,6 +100,8 @@ export default {
       if (res.data.code == 200) {
         this.username = res.data.data.username;
         this.avatar = process.env.VUE_APP_BASEURL + "/" + res.data.data.avatar;
+
+        this.$store.commit("setUserInfo", res.data.data);
       }
     },
     //退出登录
